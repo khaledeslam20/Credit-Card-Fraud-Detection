@@ -1,6 +1,6 @@
 import argparse
 import pandas as pd
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_recall_curve, auc
 from credit_fraud_val_utils import load_model, save_classification_report, save_confusion_matrix
 
 
@@ -31,7 +31,13 @@ def predict_with_model(model_path, test_path, output_dir="predictions"):
 
     # Calculate and print metrics
     f1 = f1_score(y_test, y_pred)
+
+    # Calculate PR AUC
+    precision, recall, _ = precision_recall_curve(y_test, y_probs)
+    pr_auc = auc(recall, precision)
+
     print(f"Test F1 Score: {f1:.4f}")
+    print(f"Test PR AUC: {pr_auc:.4f}")
     print(f"Model config: {model_dict.get('config')}")
     print(f"Threshold used: {threshold}")
 
@@ -60,9 +66,18 @@ def predict_with_model(model_path, test_path, output_dir="predictions"):
         'probability': y_probs
     })
     predictions_df.to_csv(f"{output_dir}/predictions.csv", index=False)
-    print(f"Predictions saved to {output_dir}/predictions.csv")
+    metrics_df = pd.DataFrame({
+        'metric': ['F1_Score', 'PR_AUC', 'Threshold'],
+        'value': [f1, pr_auc, threshold]
+    })
 
-    return y_pred, y_probs, f1
+    metrics_df.to_csv(f"{output_dir}/test_metrics.csv", index=False)
+
+    print(f"Predictions saved to {output_dir}/predictions.csv")
+    print(f"Metrics saved to {output_dir}/test_metrics.csv")
+
+
+    return y_pred, y_probs, f1, pr_auc
 
 
 def main():
@@ -77,10 +92,11 @@ def main():
     args = parser.parse_args()
 
     # Make predictions
-    y_pred, y_probs, f1 = predict_with_model(args.model_path, args.test_path, args.output_dir)
+    y_pred, y_probs, f1,pr_auc = predict_with_model(args.model_path, args.test_path, args.output_dir)
 
     print(f"\nPrediction completed!")
     print(f"F1 Score: {f1:.4f}")
+    print(f"PR AUC: {pr_auc:.4f}")
     print(f"Results saved in: {args.output_dir}/")
 
 
