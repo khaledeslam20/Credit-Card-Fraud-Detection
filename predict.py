@@ -36,8 +36,8 @@ def predict_with_model(model_path, test_path, output_dir="predictions"):
     precision, recall, _ = precision_recall_curve(y_test, y_probs)
     pr_auc = auc(recall, precision)
 
-    print(f"Test F1 Score: {f1:.4f}")
-    print(f"Test PR AUC: {pr_auc:.4f}")
+    # print(f"Test F1 Score: {f1:.4f}")
+    # print(f"Test PR AUC: {pr_auc:.4f}")
     print(f"Model config: {model_dict.get('config')}")
     print(f"Threshold used: {threshold}")
 
